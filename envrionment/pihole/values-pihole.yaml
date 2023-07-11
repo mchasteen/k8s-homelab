@@ -1,0 +1,25 @@
+DNS1: "192.168.0.16#5053"
+DNS2: "192.168.0.16#5053"
+
+adlists:
+  - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/ultimate.txt
+
+persistentVolumeClaim:
+  enabled: true
+
+serviceWeb:
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "192.168.0.15"
+    #metallb.universe.tf/address-pool: home-pool
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+  type: LoadBalancer
+
+serviceDns:
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "192.168.0.15"
+    #metallb.universe.tf/address-pool: home-pool
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+  type: LoadBalancer
+
+podDnsConfig:
+  enabled: false

@@ -1,0 +1,29 @@
+AWX:
+  # enable use of awx-deploy template
+  enabled: true
+  name: awx
+  spec:
+    admin_user: admin
+    #service_type: NodePort
+    #nodeport_port: 30080
+    ingress_type: ingress
+    ingress_class_name: nginx
+    ingress_tls_secret: "awk.home.local"
+    hostname: "awx.home.local"
+    #ingress_path: /
+    #ingress_path_type: Prefix
+    #ingress_api_version: 'networking.k8s.io/v1'
+  # configurations for external postgres instance
+  #postgres:
+  #  enabled: false
+  #  host: Unset
+  #  port: 5678
+  #  dbName: Unset
+  #  username: admin
+    # for secret management, pass in the password independently of this file
+    # at the command line, use --set AWX.postgres.password
+  #  password: Unset
+  #  sslmode: prefer
+  #  type: unmanaged
+
+

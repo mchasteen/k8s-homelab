@@ -1,0 +1,14 @@
+service:
+  dns:
+    enabled: true
+    single: true
+    type: LoadBalancer
+    # -- The service port used.
+    port: 5053
+    # -- Additional annotations for the service object.
+    annotations:
+      metallb.universe.tf/loadBalancerIPs: "192.168.0.16"
+      #metallb.universe.tf/address-pool: home-pool
+      metallb.universe.tf/allow-shared-ip: unbound-svc
+    # -- Additional labels for the service object.
+    labels: {}

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+# Blocklists
+# https://github.com/hagezi/dns-blocklists#ultimate
+
+# https://artifacthub.io/packages/helm/pascaliske/unbound
+helm repo add pascaliske https://charts.pascaliske.dev
+helm repo update
+kubectl create namespace unbound
+ helm install -n unbound unbound --set service.dns.type=NodePort,service.dns.nodePort=30053 pascaliske/unbound
+
+#  https://artifacthub.io/packages/helm/mojo2600/pihole
+kubectl create namespace pihole
+helm repo add mojo2600 https://mojo2600.github.io/pihole-kubernetes
+helm repo update
+helm install pihole -n pihole --create-namespace -f ./pihole-kubernetes.yaml mojo2600/pihole
+
+unbound-dns.default.svc.cluster.local#5053

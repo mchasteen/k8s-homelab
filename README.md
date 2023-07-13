@@ -217,7 +217,7 @@ K9s is a visual management tool that runs in the CLI.  I like k9s.  Easy, intuat
 *See:*
 https://github.com/derailed/k9s
 
->`curl -sS https://webinstall.dev/k9s | bash`
+`curl -sS https://webinstall.dev/k9s | bash`
 
 ## Get kubectl config from cluster
 1. Make the config directlty:

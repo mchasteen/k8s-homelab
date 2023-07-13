@@ -174,8 +174,8 @@ Find the following contexts and set it as follows:
 ## Optional: Add more control-planes and worker nodes
 
 1. Follow:
-   1. [Install OS](# Install OS)
-   2. [Configure the firewall](# Configure Local Firewall)
+   1. [Install OS](#Install OS)
+   2. [Configure the firewall](#Configure Local Firewall)
 2. On the primary node, get the cluster's secret token with:
 
    `sudo cat /var/lib/rancher/k3s/server/node-token`

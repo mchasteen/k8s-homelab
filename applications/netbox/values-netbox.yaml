@@ -1,0 +1,20 @@
+ingress:
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "netbox.home.local"
+    kubernetes.io/ingress.class: "nginx"
+    #kubernetes.io/tls-acme: "true"
+    cert-manager.io/issuer-group: certmanager.step.sm
+    cert-manager.io/issuer-kind: StepClusterIssuer
+    cert-manager.io/issuer: step-cluster-issuer
+  hosts:
+    - host: netbox.home.local
+      paths:
+        # NB: You may also want to set the basePath above
+        - /
+
+  tls:
+    - secretName: netbox-tls
+      hosts:
+        - netbox.home.local
+

@@ -85,7 +85,10 @@ spec:
         - --provider=pihole
         # Change this to the actual address of your Pi-hole web server
         # Micah: This is the pihole web service it is referencing
-        - --pihole-server=http://pihole-web.pihole.svc.cluster.local
+        # - --pihole-server=http://pihole-web.pihole.svc.cluster.local
+        # 20230724 No longer using pihole helm deployment.  Needed DHCP working corectly for AWX.
+        # kubectl create secret -n pihole generic pihole-password --from-file=password=./pw.txt
+        - --pihole-server=http://pi.hole
         # Micah: This is referencing the pihole helm chart
         - --pihole-password=$(password)
       securityContext:

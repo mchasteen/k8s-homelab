@@ -333,6 +333,7 @@ helm install longhorn longhorn/longhorn --namespace longhorn-system --create-nam
 ```
 
 ## Futher Installs
-1. cert-manager - auto hand out certs to things like services.
-2. external-dns - auto update your local DNS when new services are deployed.
+1. external-dns - Auto update your local DNS when new services are deployed.
+2. cert-manager - Auto hand out certs to things like services.
+3. [step-certificates and step-issuer](environment/step-ca/readme-step-ca.md) - Auto hand out certs from your own two-teir ca.  Allows you to install one root cert on all your devices.
 

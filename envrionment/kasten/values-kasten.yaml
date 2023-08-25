@@ -1,0 +1,72 @@
+# OIDC setup:
+# https://kb.kasten.io/knowledge/how-to-obtain-ca-certificates-for-accessing-an-endpoint
+# https://community.veeam.com/blogs-and-podcasts-57/nkgg-decides-to-dump-auth0-and-leverage-a-home-grown-keycloak-deployment-for-kasten-authentication-1276
+# https://www.kasten.io/kubernetes/resources/blog/how-to-configure-k10-with-oidc-based-authentication-using-okta
+# Install custom root cert:
+# https://docs.kasten.io/latest/install/advanced.html?highlight=custom%20ca#install-root-ca-in-k10-s-namespace
+#
+# Helm default values:
+#https://docs.kasten.io/latest/install/advanced.html?highlight=custom%20ca#complete-list-of-k10-helm-options
+
+
+eula:
+  accept: true
+  company: "Home Use"
+  email: "fake@email.com"
+  
+global:
+  persistence:
+    storageClass: "longhorn"
+
+ingress:
+  create: true
+  tls:
+    enabled: true
+    secretName: "kasten.home.local"
+  class: nginx #Ingress controller type
+  host: "kasten.home.local" #ingress object host name
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    external-dns.alpha.kubernetes.io/hostname: "kasten.home.local"
+    cert-manager.io/issuer-group: certmanager.step.sm
+    cert-manager.io/issuer-kind: StepClusterIssuer
+    cert-manager.io/issuer: step-cluster-issuer
+
+#service:
+#  externalPort: 443
+#  internalPort: 443
+   
+auth:
+  oidcAuth:
+    enabled: true
+    providerURL: "https://keycloak.home.local/realms/your-realm-name" #URL to your OIDC provider
+#    providerURL: "https://keycloak.home.local/realms/master"
+    redirectURL: "https://kasten.home.local" #URL to the K10 gateway service
+    scopes: "profile email" #Space separated OIDC scopes required for userinfo. Example: "profile email"
+    prompt: "select_account" #The prompt type to be requested with the OIDC provider. Default is select_account.
+    clientID: kasten #ClientID given by the OIDC provider for K10
+    clientSecret: "client-secret-goes-here" # chasteen
+    usernameClaim: "email" #Claim to be used as the username
+#    usernamePrefix: "" #Prefix that has to be used with the username obtained from the username claim
+    groupClaim: "roles" #Name of a custom OpenID Connect claim for specifying user groups
+#    groupPrefix: "" #All groups will be prefixed with this value to prevent conflicts.
+#    logoutURL: "https://keycloak.home.local/realms/chasteen/" #URL to your OIDC provider's logout endpoint
+    #OIDC config based existing secret.
+    #Must include providerURL, redirectURL, scopes, clientID/secret and logoutURL.
+#    secretName: ""
+  k10AdminUsers:
+    - user@email.com # usernameClaim is an email address.
+  k10AdminGroups:
+    - k10
+
+cluster:
+  domainName: "home.local"
+  
+#prometheus:
+#    enabled: false
+      
+cacertconfigmap:
+  name: "custom-ca-bundle-store" #Name of the configmap
+
+#grafana:
+#  enabled: false

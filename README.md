@@ -102,6 +102,7 @@ sudo firewall-cmd --add-port=8443/tcp --permanent
 sudo firewall-cmd --add-port=8472/udp --permanent
 sudo firewall-cmd --add-port=10250/tcp --permanent
 sudo firewall-cmd --add-port=2379-2380/tcp --permanent  # Only needed if using etcd.
+sudo firewall-cmd --add-port=9100/tcp --permanent # For Prometheus node exporter
 sudo firewall-cmd --add-masquerade --permanent
 sudo firewall-cmd --reload
 ```

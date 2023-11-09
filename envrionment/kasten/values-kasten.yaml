@@ -26,6 +26,8 @@ ingress:
   class: nginx #Ingress controller type
   host: "kasten.home.local" #ingress object host name
   annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "X-Forwarded-For"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     external-dns.alpha.kubernetes.io/hostname: "kasten.home.local"
     cert-manager.io/issuer-group: certmanager.step.sm

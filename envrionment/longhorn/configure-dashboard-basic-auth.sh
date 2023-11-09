@@ -6,7 +6,7 @@ htpasswd -c auth admin
 kubectl -n longhorn-system create secret generic longhorn-basic-auth --from-file=auth
 
 
-cat <<EOF > ingress-longhorn-dashboard.yaml
+cat <<EOF > basic-auth-ingress-longhorn-dashboard.yaml
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -43,4 +43,4 @@ spec:
 
 EOF
 
-kubectl -n longhorn-system apply -f ./ingress-longhorn-dashboard.yaml
+kubectl -n longhorn-system apply -f ./basic-auth-ingress-longhorn-dashboard.yaml

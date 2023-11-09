@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: longhorn-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-proxy
+    spec:
+      containers:
+      - args:
+        - --provider=keycloak-oidc
+        - --redirect-url=https://longhorn.home.local/oauth2/callback
+        - --email-domain=*
+        - --upstream=file:///dev/null
+        - --http-address=0.0.0.0:4180
+        - --insecure-oidc-skip-issuer-verification=true
+        - --oidc-issuer-url=https://keycloak.home.local/realms/your-realm-name/
+        - --ssl-insecure-skip-verify=true
+        # https://github.com/oauth2-proxy/oauth2-proxy/issues/644
+        - --session-cookie-minimal=true
+        - --scope=openid email
+        # - --email-domain=<yourcompany.com> // Validate email domain for users, see option documentation
+        # - --allowed-role=<realm role name> // Optional, required realm role
+        # - --allowed-role=<client id>:<client role name> // Optional, required client role
+        # - --allowed-group=</group name> // Optional, requires group client scope
+        - --code-challenge-method=S256
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          value: client-id
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          value: client-secret
+        #- name: OAUTH2_PROXY_OIDC_ISSUER_URL
+        #  value: https://keycloak.home.local/realms/your-realm-name/
+        #- name: OAUTH2_PROXY_EMAIL_DOMAIN
+        #  value: user@email.com
+        - name: OAUTH2_PROXY_ALLOWED_ROLE
+          value: role-in-keycloak
+        # docker run -ti --rm python:3-alpine python -c 'import secrets,base64; print(base64.b64encode(base64.b64encode(secrets.token_bytes(16))));'
+        # python -c 'import os,base64; print(base64.b64encode(os.urandom(16)).decode("ascii"))'
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          value: output-of-above-command
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        imagePullPolicy: Always
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: longhorn-system
+spec:
+  ports:
+  - name: http
+    port: 4180
+    protocol: TCP
+    targetPort: 4180
+  selector:
+    k8s-app: oauth2-proxy

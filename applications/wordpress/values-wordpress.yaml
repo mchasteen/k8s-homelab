@@ -1,0 +1,164 @@
+---
+## @param wordpressUsername WordPress username
+##
+wordpressUsername: user
+## @param wordpressPassword WordPress user password
+## Defaults to a random 10-character alphanumeric string if not set
+##
+wordpressPassword: "Secure!1"
+
+## @param wordpressEmail WordPress user email
+##
+wordpressEmail: user@example.com
+## @param wordpressFirstName WordPress user first name
+##
+wordpressFirstName: FirstName
+## @param wordpressLastName WordPress user last name
+##
+wordpressLastName: LastName
+## @param wordpressBlogName Blog name
+##
+wordpressBlogName: User's Blog!
+## @param wordpressTablePrefix Prefix to use for WordPress database tables
+##
+wordpressTablePrefix: wp_
+## @param wordpressScheme Scheme to use to generate WordPress URLs
+##
+wordpressScheme: http
+
+## @param podLabels Extra labels for WordPress pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels:
+  environment: demo
+
+## WordPress service parameters
+##
+service:
+  ## @param service.type WordPress service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.http WordPress service HTTP port
+  ## @param service.ports.https WordPress service HTTPS port
+  ##
+  ports:
+    http: 80
+    https: 443
+  ## @param service.httpsTargetPort Target port for HTTPS
+  ##
+  httpsTargetPort: https
+  ## Node ports to expose
+  ## @param service.nodePorts.http Node port for HTTP
+  ## @param service.nodePorts.https Node port for HTTPS
+  ## NOTE: choose port between <30000-32767>
+  ##
+  nodePorts:
+    http: ""
+    https: ""
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  ## Values: ClientIP or None
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ## sessionAffinityConfig:
+  ##   clientIP:
+  ##     timeoutSeconds: 300
+  ##
+  sessionAffinityConfig: {}
+  ## @param service.clusterIP WordPress service Cluster IP
+  ## e.g.:
+  ## clusterIP: None
+  ##
+  annotations: {}
+
+## Configure the ingress resource that allows you to access the WordPress installation
+## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
+##
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for WordPress
+  ##
+  enabled: false
+  ## @param ingress.pathType Ingress path type
+  ##
+  pathType: ImplementationSpecific
+  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ##
+  apiVersion: ""
+  ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
+  ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
+  ##
+  ingressClassName: ""
+  ## @param ingress.hostname Default host for the ingress record. The hostname is templated and thus can contain other variable references.
+  ##
+  hostname: wordpress.local
+
+  ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## For a full list of possible ingress annotations, please see
+  ## ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/nginx-configuration/annotations.md
+  ## Use this parameter to set the required annotations for cert-manager, see
+  ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+  ##
+  ## e.g:
+  ## annotations:
+  ##   kubernetes.io/ingress.class: nginx
+  ##   cert-manager.io/cluster-issuer: cluster-issuer-name
+  ##
+  annotations: {}
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
+  ## You can:
+  ##   - Use the `ingress.secrets` parameter to create this TLS secret
+  ##   - Rely on cert-manager to create it by setting the corresponding annotations
+  ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
+  ##
+  tls: false
+
+  
+## @section Persistence Parameters
+##
+
+## Persistence Parameters
+## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+##
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+
+  ## @param persistence.size Persistent Volume size
+  ##
+  size: 10Gi
+
+## MariaDB chart configuration
+## ref: https://github.com/bitnami/charts/blob/main/bitnami/mariadb/values.yaml
+##
+mariadb:
+  ## MariaDB Authentication parameters
+  ## @param mariadb.auth.rootPassword MariaDB root password
+  ## @param mariadb.auth.database MariaDB custom database
+  ## @param mariadb.auth.username MariaDB custom user name
+  ## @param mariadb.auth.password MariaDB custom user password
+  ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-the-root-password-on-first-run
+  ##      https://github.com/bitnami/containers/blob/main/bitnami/mariadb/README.md#creating-a-database-on-first-run
+  ##      https://github.com/bitnami/containers/blob/main/bitnami/mariadb/README.md#creating-a-database-user-on-first-run
+  ##
+  auth:
+    rootPassword: "Secure!1"
+    database: bitnami_wordpress
+    username: bn_wordpress
+    password: "Secure!1"
+  ## MariaDB Primary configuration
+  ##
+  primary:
+    ## MariaDB Primary Persistence parameters
+    ## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+    ## @param mariadb.primary.persistence.enabled Enable persistence on MariaDB using PVC(s)
+    ## @param mariadb.primary.persistence.storageClass Persistent Volume storage class
+    ## @param mariadb.primary.persistence.accessModes [array] Persistent Volume access modes
+    ## @param mariadb.primary.persistence.size Persistent Volume size
+    ##
+    persistence:
+      enabled: true
+      size: 8Gi

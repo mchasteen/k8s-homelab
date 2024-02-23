@@ -1,0 +1,38 @@
+---
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    certSource: secret
+    secret:
+      secretName: harbor.home.local-tls
+  ingress:
+    hosts:
+      core: harbor.home.local
+    className: "nginx"
+    annotations:
+      # note different ingress controllers may require a different ssl-redirect annotation
+      # for Envoy, use ingress.kubernetes.io/force-ssl-redirect: "true" and remove the nginx lines below
+      #ingress.kubernetes.io/ssl-redirect: "true"
+      #ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      external-dns.alpha.kubernetes.io/hostname: "harbor.home.local"
+      cert-manager.io/issuer-group: certmanager.step.sm
+      cert-manager.io/issuer-kind: StepClusterIssuer
+      cert-manager.io/issuer: step-cluster-issuer
+    harbor:
+      # harbor ingress-specific annotations
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+        cert-manager.io/issuer-group: certmanager.step.sm
+        cert-manager.io/issuer-kind: StepClusterIssuer
+        cert-manager.io/issuer: step-cluster-issuer
+      # harbor ingress-specific labels
+      labels: {}
+externalURL: https://harbor.home.local
+ipFamily:
+  ipv6:
+    enabled: false
+

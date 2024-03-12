@@ -1,0 +1,47 @@
+---
+# Modified from https://longhorn.io/docs/1.6.0/nodes-and-volumes/volumes/rwx-volumes/
+# Changed the copy command to preserve ownership
+# Process:
+#   1. Create new pvc
+#   1. Set repliacs to 0 (shutdown pods)
+#   2. Apply job
+#   3. Point deployment to new pvc
+#   4. Set repliacs to original value.
+#   Optional: delete old pvcs, create new pvcs with original name, copy into new pvc with job
+# Thre might be a better way (outside of velero).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: yournamespace # namespace where the PVC's exist
+  name: pvc-migration-pvc
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  template:
+    metadata:
+      name: volume-migration
+      labels:
+        name: volume-migration
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: volume-migration
+          image: ubuntu:xenial
+          tty: true
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp -av /mnt/old/. /mnt/new/" ]  #this dosent work. needs to use rsync and preserve permissions
+          volumeMounts:
+            - name: old-vol
+              mountPath: /mnt/old
+            - name: new-vol
+              mountPath: /mnt/new
+      #nodeSelector:
+        #kubernetes.io/hostname: node # Specify a node if the pvc is local storage.
+      volumes:
+        - name: old-vol
+          persistentVolumeClaim:
+            claimName: old-claim # change to data source PVC
+        - name: new-vol
+          persistentVolumeClaim:
+            claimName: new-claim # change to data target PVC

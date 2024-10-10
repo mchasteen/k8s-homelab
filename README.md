@@ -245,9 +245,9 @@ https://github.com/derailed/k9s
 # Next Steps Before Application Deployments
 At this point about everything can be done from your management computer.  Next we need to install a few extra components (since we removed trafik and servicelb):
 
-1. install metallb
-2. install ingress
-3. install longhorn for multi-node deployments without network storage.
+1. [Install metallb](#install-metallb)
+2. [Install ingress](#install-nginx-ingress-controller)
+3. [Install longhorn for multi-node deployments without network storage](#optional-install-longhorn)
 
 ## Install MetalLB
 Hopefully you have though about what IP ranges you will need.  Next we will define what IP pools your lab will use.  Any 'external' services set to 'LoadBalancer' services will need a real IP with L2 advertisement (otherwise arp won't be updated).
@@ -304,7 +304,6 @@ helm repo add metallb https://metallb.github.io/metallb
 helm repo update
 helm install metallb-system \
   -n metallb-system --create-namespace \
-  --version 0.13.9 \
   metallb/metallb
 sleep 60
 kubectl apply -f metallb_config.yaml

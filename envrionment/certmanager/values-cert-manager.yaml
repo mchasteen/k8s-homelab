@@ -1,0 +1,17 @@
+---
+installCRDs: true
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+prometheus:
+  servicemonitor:
+    enabled: true
+    labels:
+      env: test
+      info_type: cluster_health

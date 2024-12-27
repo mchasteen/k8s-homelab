@@ -1,0 +1,45 @@
+---
+prometheus:
+  serviceAccount: "default"
+  namespace: "monitoring"
+  serviceMonitor:
+    enabled: true
+    speaker:
+      additionalLabels:
+        env: test
+        info_type: cluster_health
+    controller:
+      additionalLabels:
+        env: test
+        info_type: cluster_health
+
+  prometheusRule:
+    enabled: true
+    additionalLabels:
+      env: test
+      info_type: cluster_health
+    staleConfig:
+      enabled: true
+      labels:
+        severity: warning
+    configNotLoaded:
+      enabled: true
+      labels:
+        severity: warning
+    addressPoolExhausted:
+      enabled: true
+      labels:
+        severity: critical
+
+    addressPoolUsage:
+      enabled: true
+      thresholds:
+        - percent: 75
+          labels:
+            severity: warning
+        - percent: 85
+          labels:
+            severity: warning
+        - percent: 95
+          labels:
+            severity: critical

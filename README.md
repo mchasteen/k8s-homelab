@@ -1,4 +1,4 @@
-# Disclaimer
+1# Disclaimer
 ***While I am a professional technological monkey, this is my own test lab settings.  This is not to be used in production and is presented as-is.***
 
 ***I am learning still, as I hope we all are, so this will change as I learn.  What is below is currently working for me now.***
@@ -22,10 +22,10 @@ Decide also what IP space you will use.  Set aside a chunk of your home lab netw
 
 Example:
 
-- 192.168.0.15-29 for static IPs.
+- 192.168.0.15-19 for static IPs.
 - 192.168.0.25-150 for dynamic IPs.
 
-I use two IP pools.  One IP pool for dynamically allocated IPs for applications and one for statically assigned IPs.  You really wont need many static IPs in the static pool.  I only use them for my hmoe lab DNS services when need an IP.  Once you install the external-dns plugin, kubernetes will dynamically add DNS records for the services you deploy.
+I use two IP pools.  One IP pool for dynamically allocated IPs for applications and one for statically assigned IPs.  You really won't need many static IPs in the static pool.  I only use them for my home lab DNS services when I need an IP.  Once you install the external-dns plugin, kubernetes will dynamically add DNS records for the services you deploy.
 
 ## Node Hardware
 You do not need the same [hardware](https://docs.k3s.io/installation/requirements#hardware) for each node, but I do recommend the same [processor architecture](https://docs.k3s.io/installation/requirements#architecture) (x86_64 vs arm64).
@@ -41,7 +41,7 @@ Recommended hardware:
 ## Node OS
 Decide the node (server) [OS](https://docs.k3s.io/installation/requirements#operating-systems) you will use to host K3s.
 
-I chose OpenSuSE leap as my base OS, which is in the an entierprise linux vein, since is K3s is related to or product of Rancher (also produces Longhorn distributed storage), and Rancher which is "by" SuSE...Which OpenSuse Leap is the opensource upstream distro of SUSE Entierprise Linux (SLES).
+I chose OpenSuSE leap as my base OS, which is in the enterprise linux vein, since is K3s is related to or product of Rancher (also produces Longhorn distributed storage), and Rancher which is "by" SuSE...Which OpenSuse Leap is the opensource upstream distro of SUSE Entierprise Linux (SLES).
 
 Also, I have been around SuSE since before Novell bought them (back when it came on a CD) and I am comfortable with the system.  It is very stable overall and supports many different Linux skill levels.  The system can be configured using their configuration tool called YaST which has a GIU and CLI client.
 

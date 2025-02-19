@@ -1,0 +1,14 @@
+---
+existingSecret: "keydb-secrets"
+existingSecretPasswordKey: "REDIS_PASSWORD"
+
+serviceMonitor:
+  enabled: true
+  labels:
+    app: keydb
+    env: prod
+    team: devops
+    info_type: app_health
+
+exporter:
+  enabled: true

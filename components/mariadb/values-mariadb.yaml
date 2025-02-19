@@ -1,0 +1,161 @@
+image:
+  registry: harbor.home.local
+  repository: dockerhub-proxy/bitnami/mariadb
+  # tag: 11.4.3-debian-12-r0
+
+auth:
+  database: mariadb
+  username: mariadb
+  existingSecret: mariadb-secrets
+
+primary:
+  # https://github.com/MariaDB/mariadb-docker/issues/560
+  configuration: |-
+    [mysqld]
+    skip-name-resolve
+    explicit_defaults_for_timestamp
+    basedir=/opt/bitnami/mariadb
+    datadir=/bitnami/mariadb/data
+    plugin_dir=/opt/bitnami/mariadb/plugin
+    port=3306
+    socket=/opt/bitnami/mariadb/tmp/mysql.sock
+    tmpdir=/opt/bitnami/mariadb/tmp
+    max_allowed_packet=100M
+    bind-address=*
+    pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+    log-error=/opt/bitnami/mariadb/logs/mysqld.log
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_general_ci
+    slow_query_log=0
+    long_query_time=10.0
+    binlog_expire_logs_seconds=2592000
+
+    [client]
+    port=3306
+    socket=/opt/bitnami/mariadb/tmp/mysql.sock
+    default-character-set=utf8mb4
+    plugin_dir=/opt/bitnami/mariadb/plugin
+
+    [manager]
+    port=3306
+    socket=/opt/bitnami/mariadb/tmp/mysql.sock
+    pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+  
+#   startupProbe:
+#     enabled: true
+#     initialDelaySeconds: 120
+#     periodSeconds: 15
+#     timeoutSeconds: 5
+#     failureThreshold: 10
+#     successThreshold: 1
+  ## Configure extra options for liveness probe
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param primary.livenessProbe.enabled Enable livenessProbe
+  ## @param primary.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param primary.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param primary.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param primary.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param primary.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+
+  # https://maciej.lasyk.info/2022/May/01/problems-with-imports-using-bitnamimariadb/
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    timeoutSeconds: 120
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param primary.readinessProbe.enabled Enable readinessProbe
+  ## @param primary.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param primary.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param primary.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param primary.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param primary.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 120
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param primary.customStartupProbe Override default startup probe for MariaDB primary containers
+  ##
+  # customStartupProbe:
+  #   tcpSocket:
+  #     port: 3306
+  # customStartupProbe:
+  #   exec:
+  #     command:
+  #       - /bin/bash
+  #       - -c
+  #       - /bin/bash -c "mariadb-admin ping -uroot -p${MARIADB_ROOT_PASSWORD}"
+  # ## @param primary.customLivenessProbe Override default liveness probe for MariaDB primary containers
+  # ##
+  # customLivenessProbe:
+  #   tcpSocket:
+  #     port: 3306
+  # customLivenessProbe:
+  #   exec:
+  #     command:
+  #       - /bin/bash
+  #       - -c
+  #       - /bin/bash -c "mariadb-admin ping -uroot -p${MARIADB_ROOT_PASSWORD}"
+  # ## @param primary.customReadinessProbe Override default readiness probe for MariaDB primary containers
+  # ##
+  # customReadinessProbe:
+  #   tcpSocket:
+  #     port: 3306
+  # customReadinessProbe:
+  #   exec:
+  #     command:
+  #       - /bin/bash
+  #       - -c
+  #       - /bin/bash -c "mariadb-admin ping -uroot -p${MARIADB_ROOT_PASSWORD}"
+  ## @param primary.startupWaitOptions Override default builtin startup wait check options for MariaDB primary containers
+  ## `bitnami/mariadb` Docker image has built-in startup check mechanism,
+  ## which periodically checks if MariaDB service has started up and stops it
+  ## if all checks have failed after X tries. Use these to control these checks.
+  ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb/pull/240
+  ## Example (with default options):
+  ## startupWaitOptions:
+  ##   retries: 300
+  ##   waitTime: 2
+  ##
+  # startupWaitOptions: {}
+  # ## @param primary.extraFlags MariaDB primary additional command line flags
+  # ## Can be used to specify command line flags, for example:
+  # ## E.g.
+  # ## extraFlags: "--max-connect-errors=1000 --max_connections=155"
+  # ##
+  # extraFlags: ""
+  # ## @param primary.extraEnvVars Extra environment variables to be set on MariaDB primary containers
+  # ## E.g.
+  # ## extraEnvVars:
+  # ##  - name: TZ
+  # ##    value: "Europe/Paris"
+  # ##
+  # extraEnvVars: []
+  ## @param primary.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for MariaDB primary containers
+  ##
+  
+  persistence:
+    size: 8Gi
+
+# volumePermissions:
+#   enabled: true
+#   image:
+#     registry: harbor.home.local
+#     repository: dockerhub-proxy/bitnami/os-shell
+
+# metrics:
+#   enabled: false
+#   image:
+#     registry: harbor.home.local
+#     repository: dockerhub-proxy/bitnami/mysqld-exporter
+#     # tag: 0.15.1
+  
+#   serviceMonitor:
+#     enabled: true
+#     namespace: "monitoring"

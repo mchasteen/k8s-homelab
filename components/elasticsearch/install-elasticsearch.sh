@@ -6,5 +6,5 @@
 helm upgrade --install elasticsearch elasticsearch \
   --repo https://helm.elastic.co \
   --namespace elastic-app --create-namespace \
-  --version 0.48.0 #\
+  --version 8.5.1 #\
 #  -f ./values-elasticsearch.yaml

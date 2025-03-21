@@ -1,0 +1,45 @@
+---
+provider:
+  name: rfc2136
+extraArgs:
+  - --rfc2136-host=$(RFC2136-HOST)
+  - --rfc2136-port=53
+  - --rfc2136-zone=$(RFC2136-ZONE)
+  # - --rfc2136-zone=k8s.your-zone.org
+  - --rfc2136-tsig-secret=$(RFC2136-TSIG-SECRET)
+  - --rfc2136-tsig-secret-alg=$(RFC2136-TSIG-ALG)
+  - --rfc2136-tsig-keyname=$(RFC2136-TSIG-KEYNAME)
+  - --rfc2136-tsig-axfr # needed to enable zone transfers, which is required for deletion of records.
+
+env: # configured your pi-hole password and ip address
+  - name: RFC2136-HOST
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-rfc2136
+        key: dns-server
+  - name: RFC2136-ZONE
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-rfc2136
+        key: zone
+  - name: RFC2136-TSIG-ALG
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-rfc2136
+        key: tsig-alg
+  - name: RFC2136-TSIG-KEYNAME
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-rfc2136
+        key: tsig-key-name
+  - name: RFC2136-TSIG-SECRET
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-rfc2136
+        key: tsig-secret
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    env: prod
+    team: devops
+    info_type: cluster_health

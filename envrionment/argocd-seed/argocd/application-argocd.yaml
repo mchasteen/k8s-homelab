@@ -1,0 +1,289 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lifecycle-argocd
+  namespace: envrionment-argocd-seed
+spec:
+  project: lifecycle-argocd
+  info:
+    - name: 'Application URL:'
+      value: >-
+        https://argocd.home.local
+    - name: 'Chart Information:'
+      value: >-
+        https://artifacthub.io/packages/helm/argo/argo-cd
+    - name: 'Monitoring Information:'
+      value: >-
+        https://grafana.home.local
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: lifecycle-argocd
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+  sources:
+  - chart: keydb # This is an external help chart
+    repoURL: https://enapter.github.io/charts/ 
+    targetRevision: 0.48.0
+    helm:
+      releaseName: lifecycle-argocd-keydb
+      valuesObject:
+        existingSecret: "argocd-secrets"
+        existingSecretPasswordKey: "redis-password"
+
+        serviceMonitor:
+          enabled: true
+          labels:
+            app: lifecycle-argocd
+            app_component: lifecycle-argocd_redis
+            env: prod
+            team: devops
+            info_type: app_health
+
+        exporter:
+          enabled: true
+  - chart: argo-cd
+    repoURL: ghcr.io/argoproj/argo-helm
+    targetRevision: 7.8.27
+    helm:
+      releaseName: lifecycle-argocd
+      valuesObject:
+        global:
+          domain: argocd.home.local
+          image:
+            # -- If defined, a repository applied to all Argo CD deployments
+            repository: quay.io/argoproj/argocd
+            # -- Overrides the global Argo CD image tag whose default is the chart appVersion
+            tag: ""
+            # -- If defined, a imagePullPolicy applied to all Argo CD deployments
+            imagePullPolicy: IfNotPresent
+
+        configs:
+          cm:
+            # patch in secret after deployment with kubectl -n argocd patch secret argocd-secret --patch='{"stringData": { "oidc.keycloak.clientSecret": "secret-here" }}' 
+            # or just put the secret here.
+            oidc.config: |
+              name: Keycloak
+              issuer: https://keycloak.home.local/realms/mydomain
+              clientID: argocd
+              clientSecret: client secret or $oidc.keycloak.clientSecret
+              requestedScopes:
+                - openid
+                - profile
+                - email
+                - groups
+            resource.compareoptions: |
+              ignoreAggregatedRoles: true 
+          params:
+            server.insecure: true # Important or get too many redirects
+          
+          rbac:
+            create: true
+            policy.csv: |
+              g, ArgoCDAdmins, role:admin
+
+        extraObjects:
+          - apiVersion: v1
+            kind: Secret
+            metadata:
+              name: argocd-secrets
+              annotations:
+                secret-generator.v1.mittwald.de/autogenerate: redis-password,postgresql-admin-password,password,postgresql-replication-password
+                secret-generator.v1.mittwald.de/length: "16"
+            stringData:
+              admin-user: admin
+
+        controller:
+          volumeMounts:
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: root-certs.pem
+              readOnly: true
+
+          volumes:
+            - name: ca-bundle
+              configMap:
+                name: ca-bundle
+          resources:
+           limits:
+             cpu: 500m
+             memory: 1Gi
+           requests:
+             cpu: 250m
+             memory: 256Mi
+
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              interval: 30s
+              namespace: "monitoring"
+              additionalLabels:
+                app: lifecycle-argocd
+                app_component: lifecycle-argocd_controller
+                env: prod
+                team: devops
+                info_type: cluster_health
+            rules:
+              enabled: true
+              namespace: "monitoring" # "monitoring"
+              additionalLabels:
+                env: prod
+                team: devops
+                info_type: cluster_health
+
+              # -- PrometheusRule.Spec for the application controller
+              spec:
+              - alert: ArgoAppMissing
+                expr: |
+                  absent(argocd_app_info) == 1
+                for: 15m
+                labels:
+                  severity: critical
+                annotations:
+                  summary: "[Argo CD] No reported applications"
+                  description: >
+                    Argo CD has not reported any applications data for the past 15 minutes which
+                    means that it must be down or not functioning properly.  This needs to be
+                    resolved for this cloud to continue to maintain state.
+              - alert: ArgoAppNotSynced
+                expr: |
+                  argocd_app_info{sync_status!="Synced"} == 1
+                for: 12h
+                labels:
+                  severity: warning
+                annotations:
+                  summary: "[{{`{{$labels.name}}`}}] Application not synchronized"
+                  description: >
+                    The application [{{`{{$labels.name}}`}} has not been synchronized for over
+                    12 hours which means that the state of this cloud has drifted away from the
+                    state inside Git.
+        ## Dex
+        dex:
+          enabled: false
+
+        redis:
+          enabled: false
+
+        # External Redis parameters
+        externalRedis:
+          host: "lifecycle-argocd-keydb"
+          port: 6379
+          # -- The name of an existing secret with Redis (must contain key `redis-password`) and Sentinel credentials.
+          # When it's set, the `externalRedis.password` parameter is ignored
+          existingSecret: "argocd-secrets"
+
+        server:
+          volumeMounts:
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: root-certs.pem
+              readOnly: true
+
+          volumes:
+            - name: ca-bundle
+              configMap:
+                name: ca-bundle
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+
+          # certificate:
+          #   enabled: true
+          #   domain: "home.local"
+          #   issuer:
+          #     group: "certmanager.step.sm"
+          #     kind: "StepClusterIssuer"
+          #     name: "step-cluster-issuer"
+
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              namespace: "monitoring" 
+              additionalLabels:
+                app: lifecycle-argocd
+                app_component: lifecycle-argocd_server
+                env: prod
+                team: devops
+                info_type: cluster_health
+
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/issuer-group: certmanager.step.sm
+              cert-manager.io/issuer-kind: StepClusterIssuer
+              cert-manager.io/issuer: step-cluster-issuer
+            ingressClassName: "nginx"
+            hostname: "argocd.home.local"
+            path: /
+            pathType: Prefix
+            tls: true
+
+
+        repoServer:
+          volumeMounts:
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: root-certs.pem
+              readOnly: true
+
+          volumes:
+            - name: ca-bundle
+              configMap:
+                name: ca-bundle
+          
+          resources:
+           limits:
+             cpu: 100m
+             memory: 256Mi
+           requests:
+             cpu: 10m
+             memory: 64Mi
+
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              namespace: "monitoring"
+              additionalLabels:
+                app: lifecycle-argocd
+                app_component: lifecycle-argocd_repo
+                env: prod
+                team: devops
+                info_type: cluster_health
+
+        applicationSet:
+          volumeMounts:
+            - name: ca-bundle
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: root-certs.pem
+              readOnly: true
+
+          volumes:
+            - name: ca-bundle
+              configMap:
+                name: ca-bundle
+
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              namespace: "monitoring"
+              additionalLabels:
+                app: lifecycle-argocd
+                app_component: lifecycle-argocd_applicationset
+                env: prod
+                team: devops
+                info_type: cluster_health
+
+        notifications:
+          enabled: false

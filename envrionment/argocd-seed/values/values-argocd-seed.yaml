@@ -1,0 +1,146 @@
+---
+global:
+  domain: argocd-seed.home.local
+  image:
+    # -- If defined, a repository applied to all Argo CD deployments
+    repository: quay.io/argoproj/argocd
+    # -- Overrides the global Argo CD image tag whose default is the chart appVersion
+    tag: ""
+    # -- If defined, a imagePullPolicy applied to all Argo CD deployments
+    imagePullPolicy: IfNotPresent
+
+configs:
+  cm:
+    resource.compareoptions: |
+      ignoreAggregatedRoles: true 
+  params:
+    server.insecure: true # Important or get too many redirects
+    
+controller:
+  resources:
+   limits:
+     cpu: 500m
+     memory: 1Gi
+   requests:
+     cpu: 250m
+     memory: 256Mi
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      namespace: "monitoring"
+      additionalLabels:
+        app: argocd_seed
+        app_component: argocd_seed_controller
+        env: prod
+        team: devops
+        info_type: cluster_health
+    rules:
+      enabled: true
+      namespace: "monitoring" # "monitoring"
+      additionalLabels:
+        app: argocd_seed
+        app_component: argocd_seed_controller
+        env: prod
+        team: devops
+        info_type: cluster_health
+
+      spec:
+      - alert: ArgoAppMissing
+        expr: |
+          absent(argocd_app_info) == 1
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "[Argo CD] No reported applications"
+          description: >
+            Argo CD has not reported any applications data for the past 15 minutes which
+            means that it must be down or not functioning properly.  This needs to be
+            resolved for this cloud to continue to maintain state.
+      - alert: ArgoAppNotSynced
+        expr: |
+          argocd_app_info{sync_status!="Synced"} == 1
+        for: 12h
+        labels:
+          severity: warning
+        annotations:
+          summary: "[{{`{{$labels.name}}`}}] Application not synchronized"
+          description: >
+            The application [{{`{{$labels.name}}`}} has not been synchronized for over
+            12 hours which means that the state of this cloud has drifted away from the
+            state inside Git.
+## Dex
+dex:
+  enabled: false
+
+redis:
+  enabled: false
+
+# External Redis parameters
+externalRedis:
+  host: "argocd-seed-keydb"
+  port: 6379
+  # -- The name of an existing secret with Redis (must contain key `redis-password`) and Sentinel credentials.
+  # When it's set, the `externalRedis.password` parameter is ignored
+  existingSecret: "argocd-seed-secrets"
+
+server:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+      
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: "monitoring" 
+      additionalLabels:
+        app: argocd_seed
+        app_component: argocd_seed_server
+        env: prod
+        team: devops
+        info_type: cluster_health
+
+repoServer:
+  resources:
+   limits:
+     cpu: 100m
+     memory: 256Mi
+   requests:
+     cpu: 10m
+     memory: 64Mi
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: "monitoring"
+      additionalLabels:
+        app: argocd_seed
+        app_component: argocd_seed_repo
+        env: prod
+        team: devops
+        info_type: cluster_health
+
+applicationSet:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: "monitoring"
+      additionalLabels:
+        app: argocd_seed
+        app_component: argocd_seed_applicationset
+        env: prod
+        team: devops
+        info_type: cluster_health
+
+notifications:
+  enabled: false

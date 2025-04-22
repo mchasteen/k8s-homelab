@@ -1,0 +1,16 @@
+---
+nodes: 1
+existingSecret: "argocd-seed-secrets"
+existingSecretPasswordKey: "redis-password"
+
+serviceMonitor:
+  enabled: true
+  labels:
+    app: argocd_seed
+    app_component: argocd_seed_redis
+    env: prod
+    team: devops
+    info_type: app_health
+
+exporter:
+  enabled: true

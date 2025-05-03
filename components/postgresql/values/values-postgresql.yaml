@@ -1,0 +1,39 @@
+---
+global:
+  postgresql:
+    auth:
+      username: "postgresql"
+      database: "postgresql"
+      existingSecret: "postgresql-secrets"
+      secretKeys:
+        adminPasswordKey: "postgresql-admin-password"
+        userPasswordKey: "password"
+        replicationPasswordKey: "postgresql-replication-password"
+
+postgresqlDataDir: /data/postgresql/data
+
+primary:
+  persistence:
+    enabled: true
+    mountPath: /data/postgresql
+    # storageClass: ""
+    size: 8Gi
+
+readReplicas:
+  persistence:
+    enabled: true
+    mountPath: /data/postgresql
+    # storageClass: ""
+    size: 8Gi
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    labels:
+      app: "postgresql"
+      env: "prod"
+      team: "devops"
+      info_type: "app_health"
+  prometheusRule:
+    enabled: true
